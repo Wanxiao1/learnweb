@@ -1,0 +1,8 @@
+http://jy.fzxy.edu.cn/FCKeditor/editor/filemanager/upload/php/upload.php
+http://jy.fzxy.edu.cn/admin/login.php
+http://jy.fzxy.edu.cn/login.php
+http://jy.fzxy.edu.cn/logout.php
+http://jy.fzxy.edu.cn/more.php
+http://jy.fzxy.edu.cn/index.php
+http://jy.fzxy.edu.cn/admin/admin_login.php
+http://jy.fzxy.edu.cn/admin/admin_logout.php

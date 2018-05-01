@@ -1,0 +1,32 @@
+{% extends '__base__.html' %}
+
+
+
+{% block title %}扫描结果{% endblock %}
+
+
+
+
+
+{% block content %}
+
+<!-- <h2><a href="{{ site }}">scan:{{ site }}</a></h2> -->
+
+
+<div class="uk-panel uk-panel-box uk-panel-box-primary">
+	<p>敏感信息</p>
+{% for r in re %}
+
+
+    <ul class="uk-pagination uk-pagination-left">
+
+    
+    <li><h5><a href="{{ r }}">【200】: {{r}}</a></h5></li>
+
+</ul>  
+    
+    
+    
+{% endfor %}
+</div>
+{% endblock %}

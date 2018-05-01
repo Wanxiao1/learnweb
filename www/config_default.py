@@ -5,7 +5,7 @@
 Default configurations.
 '''
 
-__author__ = 'Michael Liao'
+__author__ = 'Ginkgo_wx'
 
 configs = {
     'debug': True,

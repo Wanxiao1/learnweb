@@ -5,7 +5,7 @@
 Configuration
 '''
 
-__author__ = 'Michael Liao'
+__author__ = 'Ginkgo_wx'
 
 import config_default
 
