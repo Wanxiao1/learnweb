@@ -15,7 +15,7 @@ from coroweb import get, post
 
 from models import User, Comment, Blog, next_id
 from config import configs
-
+import random
 
 import time
 import queue
@@ -29,31 +29,82 @@ _COOKIE_KEY = configs.session.secret
 
 class Dirscan(object):
 
+
 	def __init__(self, scanSite, threadNum=10,scanDict="dict/dict.txt", scanOutput=0):
+		self.USER_AGENTS = ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
+		"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+		"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
+		"Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+		"Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
+		"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
+		"Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
+		"Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 3.0.04506.30)",
+		"Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
+		"Mozilla/5.0 (X11; U; Linux; en-US) AppleWebKit/527+ (KHTML, like Gecko, Safari/419.3) Arora/0.6",
+		"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
+		"Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
+		"Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5",
+		"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.8) Gecko Fedora/1.9.0.8-1.fc10 Kazehakase/0.5.6",
+		"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
+		"Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52",
+		]
 		print ('Dirscan is running!')
 		self.scanSite = scanSite if scanSite.find('://') != -1 else 'http://%s' % scanSite
 		print ('Scan target:',self.scanSite)
 		self.scanDict = scanDict
 		self.scanOutput = 'scanre/'+scanSite.rstrip('/').replace('https://', '').replace('http://', '')+'.txt' if scanOutput == 0 else scanOutput
 		try:
-			truncate = open(self.scanOutput,'w')
+			truncate = open(self.scanOutput,'a+')
 			truncate.close()
 			self.STOP_ME = False
 		except:
-			self.scanOutput=r"scanre/notfound.txt"
-			truncate = open(self.scanOutput,'w')
-			truncate.write("site is not found!")
-			truncate.close()
 			self.STOP_ME = True
+
 		self.threadNum = threadNum
 		self.lock = threading.Lock()
+		self._random_useragent()
 		self._loadHeaders()
 		self._loadDict(self.scanDict)
 		self._analysis404()
 		
 
 	def _loadDict(self, dict_list):
+
 		self.q = queue.Queue()
+		u=self.scanSite.rstrip('/').replace('https://', '').replace('http://', '')
+		www1 = u.split('.')
+		wwwlen = len(www1)
+		wwwhost = ''
+		s=['.rar',
+		'.zip',
+		'.gz',
+		'.tar',
+		'.tgz',
+		'.tar.gz',
+		'.7z',
+		'.z',
+		'.bz2',
+		'.tar.bz2',
+		'.iso',
+		'.cab',]
+		current_info_dic =[]
+		for i in range(1, wwwlen):
+		    wwwhost += www1[i]
+		for j in s:	
+			www1 = u.split('.')
+			wwwlen = len(www1)
+			wwwhost = ''	
+			current_info_dic.append('/'+u + j)
+			current_info_dic.append('/'+u.replace('.', '') + j)
+			
+			current_info_dic.append('/'+u.split('.', 1)[-1] + j)
+			current_info_dic.append('/'+www1[0] + j)
+			current_info_dic.append('/'+www1[1] + j)
+		for s in current_info_dic:
+			self.q.put(s)
+		#最终生成目录如下
+		#['/127.0.0.1.rar', '/127001.rar', '/0.0.1.rar', '/127.rar', '/0.rar', '/127.0.0.1.zip', '/127001.zip', '/0.0.1.zip', '/127.zip', '/0.zip', '/127.0.0.1.gz', '/127001.gz', '/0.0.1.gz', '/127.gz', '/0.gz', '/127.0.0.1.tar', '/127001.tar', '/0.0.1.tar', '/127.tar', '/0.tar', '/127.0.0.1.tgz', '/127001.tgz', '/0.0.1.tgz', '/127.tgz', '/0.tgz', '/127.0.0.1.tar.gz', '/127001.tar.gz', '/0.0.1.tar.gz', '/127.tar.gz', '/0.tar.gz', '/127.0.0.1.7z', '/127001.7z', '/0.0.1.7z', '/127.7z', '/0.7z', '/127.0.0.1.z', '/127001.z', '/0.0.1.z', '/127.z', '/0.z', '/127.0.0.1.bz2', '/127001.bz2', '/0.0.1.bz2', '/127.bz2', '/0.bz2', '/127.0.0.1.tar.bz2', '/127001.tar.bz2', '/0.0.1.tar.bz2', '/127.tar.bz2', '/0.tar.bz2', '/127.0.0.1.iso', '/127001.iso', '/0.0.1.iso', '/127.iso', '/0.iso', '/127.0.0.1.cab', '/127001.cab', '/0.0.1.cab', '/127.cab', '/0.cab']
 		with open(dict_list) as f:
 			for line in f:
 				if line[0:1] != '#':
@@ -63,14 +114,29 @@ class Dirscan(object):
 		else:
 			print ('Dict is Null ???')
 			quit()
-
+	def random_x_forwarded_for(condition=False):
+		if condition:
+			return '%d.%d.%d.%d' % (random.randint(1, 254),random.randint(1, 254),random.randint(1, 254),random.randint(1, 254))
+		else:
+			return '8.8.8.8'
+	def _random_useragent(self,condition=False):
+		if condition:
+			return random.choice(self.USER_AGENTS)
+		else:
+			return self.USER_AGENTS[0]
 	def _loadHeaders(self):
+		# 是否允许随机User-Agent
+		allow_random_useragent = True
+
+		# 是否允许随机X-Forwarded-For
+		allow_random_x_forward = True
 		self.headers = {
 			'Accept': '*/*',
 			'Referer': 'http://www.baidu.com',
-			'User-Agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; ',
+			'User-Agent': self._random_useragent(allow_random_useragent),
 			'Cache-Control': 'no-cache',
 		}
+
 	def _analysis404(self):
 		notFoundPage = requests.get(self.scanSite + '/meiyouzhegemulu/hello.html', allow_redirects=False)
 		self.notFoundPageText = notFoundPage.text.replace('/meiyouzhegemulu/hello.html', '')
@@ -95,6 +161,7 @@ class Dirscan(object):
 				if html_result.status_code == 200 and html_result.text != self.notFoundPageText and html_result.text != self.notFoundText:
 					print ('[%i]%s' % (html_result.status_code, html_result.url))
 					self._writeOutput('%s' %  html_result.url)
+			
 
 
 	def run(self):
@@ -269,17 +336,38 @@ async def api_register_user(*, email, name, passwd):
 
 
 @post('/scan')
-async def api_webscan(*,site,dict=['PHP'],threadNum=20):
-	if not site or not site.strip():		
-		return {	
-		'__template__': 'index.html',
-		'error': '请检查您的输入！',			
-		}
-
+async def api_webscan(*,site,dict={'PHP'},threadNum=20):
 	site=site.rstrip('/').replace('https://', '').replace('http://', '')
+	#检查网站名是否正确
+	if  site and  site.strip():
+		
+		try:
+			headers = {
+				'Accept': '*/*',
+				'Referer': 'http://www.baidu.com',
+				'User-Agent': "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
+				'Cache-Control': 'no-cache',
+				}
+			scansite=site if site.find('://') != -1 else 'http://%s' % site
+			truncate = open('scanre/'+site+'.txt','w')
+			truncate.close()
+			result = requests.get(scansite, headers=headers, allow_redirects=False, timeout=2)
+		except:
+			return {	
+			'__template__': 'index.html',
+			'error': '请检查您的网址！',			
+			}
+	else: 			
+		return {	
+			'__template__': 'index.html',
+			'error': '请检查您的输入！',			
+			}
+
+	
 	threadNum=20
 	for dic in dict:
 		scan = Dirscan(site,threadNum,scanDict="dict/"+dic+".txt", scanOutput=0)
+
 		if scan!=None :
 			for i in range(threadNum):
 				t = threading.Thread(target=scan.run)
@@ -325,10 +413,20 @@ async def aip_scan(*,site="127.0.0.1"):
 	'site': site,
 	're': re
 	}
+@post('/send')
+async def apisend(request,*,site2):
+	mailto=request.__user__.email
+	re=[]
+	with open(site2+'.txt','r') as f:
+		for line in f:
+			re.append(line)
 
 
 
-
+	r = web.Response()
+	r.content_type = 'application/json'
+	r.body = json.dumps(site2, ensure_ascii=False).encode('utf-8')
+	return r
 
 
 

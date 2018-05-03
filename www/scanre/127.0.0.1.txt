@@ -1,3 +1,9 @@
+http://127.0.0.1/127.0.0.1.7z
 http://127.0.0.1/phpmyadmin/db_create.php
 http://127.0.0.1/index.php
 http://127.0.0.1/222.php
+http://127.0.0.1/127.0.0.1.7z
+http://127.0.0.1/robots.txt
+http://127.0.0.1/phpmyadmin/
+http://127.0.0.1/cms/
+http://127.0.0.1/index.html
